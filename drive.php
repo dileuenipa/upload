@@ -81,6 +81,26 @@ class GoogleDrive {
         }
     }
 
+	public function downloadFile($fileId) {
+		try {
+			$response = $this->service->files->get($fileId, ['alt' => 'media']);
+			$content = $response->getBody()->getContents();
+			return $content;
+		} catch (Exception $e) {
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	public function deleteFile($fileId) {
+		try {
+			$this->service->files->delete($fileId);
+			return ['success' => true];
+		} catch (Exception $e) {
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+
     // Upload file lên Google Drive (tự đổi tên nếu trùng)
     public function uploadFile($file_path, $file_name, $mime_type) {
         $access_token = $this->getAccessToken();
