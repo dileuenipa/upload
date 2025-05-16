@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload to Google Drive</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 40px; }
+    .progress { width: 100%; background: #ddd; height: 20px; margin-top: 5px; }
+    .bar { height: 100%; width: 0%; background: #4caf50; transition: width 0.3s; }
+    .file-box { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Upload file lên Google Drive</h2>
+
+  <input type="file" id="files" multiple><br><br>
+  <input type="password" id="password" placeholder="Nhập mật khẩu cho file"><br><br>
+  <button onclick="uploadFiles()">Upload</button>
+
+  <div id="status"></div>
+
+  <script>
+    function uploadFiles() {
+      const files = document.getElementById('files').files;
+      const password = document.getElementById('password').value;
+
+      if (files.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 file");
+        return;
+      }
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const form = new FormData();
+        form.append("file", file);
+        form.append("password", password);
+
+        const box = document.createElement("div");
+        box.className = "file-box";
+        box.innerHTML = `<strong>${file.name}</strong><div class="progress"><div class="bar"></div></div><div class="info">0%</div>`;
+        document.getElementById("status").appendChild(box);
+        const bar = box.querySelector(".bar");
+        const info = box.querySelector(".info");
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "upload.php");
+
+        xhr.upload.onprogress = function (e) {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            const mb = (e.loaded / (1024 * 1024)).toFixed(2);
+            const totalMb = (e.total / (1024 * 1024)).toFixed(2);
+            bar.style.width = percent + "%";
+            info.textContent = `${percent}% (${mb}MB / ${totalMb}MB)`;
+          }
+        };
+
+        xhr.onload = function () {
+          if (xhr.status === 200) {
+            info.textContent += " ✅ Thành công";
+            bar.style.backgroundColor = "#4caf50";
+          } else {
+            info.textContent += " ❌ Thất bại: " + xhr.responseText;
+            bar.style.backgroundColor = "#f44336";
+          }
+        };
+
+        xhr.send(form);
+      }
+    }
+  </script> <p style="margin-top: 30px;"> 📂 <a href="list.php">Xem danh sách file đã upload</a> </p>
+</body>
+</html>
